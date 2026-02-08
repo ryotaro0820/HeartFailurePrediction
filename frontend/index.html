@@ -397,7 +397,7 @@
         // 本番環境ではRenderのAPIを使用、ローカルではlocalhost
         const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
             ? 'http://localhost:8000'
-            : 'https://heart-failure-api.onrender.com';
+            : 'https://heart-failure-api-hxiq.onrender.com';
 
         document.getElementById('predictionForm').addEventListener('submit', async (e) => {
             e.preventDefault();
