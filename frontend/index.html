@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>心不全転帰先予測システム</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .form-section {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        .input-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+        }
+        .required-mark::after {
+            content: " *";
+            color: #ef4444;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="max-w-6xl mx-auto px-4 py-8">
+        <!-- Header -->
+        <header class="text-center mb-12">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">心不全転帰先予測システム</h1>
+            <p class="text-gray-600">入院時データから退院先（自宅・転院・施設）を予測します</p>
+            <p class="text-sm text-gray-500 mt-2">* は必須項目です。その他は未入力の場合、標準値が使用されます。</p>
+        </header>
+
+        <form id="predictionForm" class="space-y-6">
+            <!-- 基本情報（必須） -->
+            <div class="form-section border-2 border-blue-300">
+                <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <span class="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm">1</span>
+                    基本情報（必須）
+                </h2>
+                <div class="input-group">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1 required-mark">年齢</label>
+                        <input type="number" name="年齢" required min="0" max="120" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="例: 75">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1 required-mark">性別</label>
+                        <select name="性別" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option value="">選択してください</option>
+                            <option value="0">女性</option>
+                            <option value="1">男性</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1 required-mark">診断名</label>
+                        <select name="診断名" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option value="">選択してください</option>
+                            <option value="HFrEF">HFrEF</option>
+                            <option value="HFmrEF">HFmrEF</option>
+                            <option value="HFpEF">HFpEF</option>
+                            <option value="弁膜症性心不全">弁膜症性心不全</option>
+                            <option value="心筋梗塞後">心筋梗塞後</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 詳細設定（折りたたみ可能） -->
+            <details class="form-section">
+                <summary class="cursor-pointer text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <span class="w-8 h-8 bg-gray-400 text-white rounded-full flex items-center justify-center text-sm">+</span>
+                    詳細項目を入力（オプション）
+                </summary>
+
+                <div class="mt-6 space-y-6">
+                    <!-- 基本情報追加 -->
+                    <div>
+                        <h3 class="text-md font-medium text-gray-700 mb-3">基本情報</h3>
+                        <div class="input-group">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">体重 (kg)</label>
+                                <input type="number" name="体重" step="0.1" min="20" max="200" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="例: 60.5">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">BMI</label>
+                                <input type="number" name="BMI" step="0.1" min="10" max="60" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="例: 22.5">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">介護保険認定</label>
+                                <select name="介護保険認定" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option value="">未選択</option>
+                                    <option value="0">なし</option>
+                                    <option value="1">要支援1</option>
+                                    <option value="2">要支援2</option>
+                                    <option value="3">要介護1</option>
+                                    <option value="4">要介護2</option>
+                                    <option value="5">要介護3</option>
+                                    <option value="6">要介護4</option>
+                                    <option value="7">要介護5</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">独居・支援</label>
+                                <select name="独居・支援" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option value="">未選択</option>
+                                    <option value="0">なし</option>
+                                    <option value="1">あり</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 心機能 -->
+                    <div>
+                        <h3 class="text-md font-medium text-gray-700 mb-3">心機能</h3>
+                        <div class="input-group">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">NYHA分類</label>
+                                <select name="NYHA" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option value="">未選択</option>
+                                    <option value="1">I</option>
+                                    <option value="2">II</option>
+                                    <option value="3">III</option>
+                                    <option value="4">IV</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">心不全入院歴 (回)</label>
+                                <input type="number" name="心不全入院歴" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="例: 2">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">原疾患</label>
+                                <select name="原疾患" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option value="">未選択</option>
+                                    <option value="0">なし</option>
+                                    <option value="1">あり</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">EF (%)</label>
+                                <input type="number" name="EF" step="0.1" min="0" max="100" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="例: 45.0">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">LAD (mm)</label>
+                                <input type="number" name="LAD" step="0.1" min="0" max="100" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="例: 42.0">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 併存疾患 -->
+                    <div>
+                        <h3 class="text-md font-medium text-gray-700 mb-3">併存疾患</h3>
+                        <div class="input-group">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">高血圧</label>
+                                <select name="高血圧" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option value="">未選択</option>
+                                    <option value="0">なし</option>
+                                    <option value="1">あり</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">糖尿病</label>
+                                <select name="糖尿病" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option value="">未選択</option>
+                                    <option value="0">なし</option>
+                                    <option value="1">あり</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">腎疾患</label>
+                                <select name="腎疾患" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option value="">未選択</option>
+                                    <option value="0">なし</option>
+                                    <option value="1">あり</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">運動器疾患</label>
+                                <select name="運動器疾患" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option value="">未選択</option>
+                                    <option value="0">なし</option>
+                                    <option value="1">あり</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">脳血管疾患</label>
+                                <select name="脳血管疾患" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option value="">未選択</option>
+                                    <option value="0">なし</option>
+                                    <option value="1">あり</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 血液検査 -->
+                    <div>
+                        <h3 class="text-md font-medium text-gray-700 mb-3">血液検査</h3>
+                        <div class="input-group">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">血清Cre (mg/dL)</label>
+                                <input type="number" name="血清Cre" step="0.01" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="例: 1.2">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">血清Alb (g/dL)</label>
+                                <input type="number" name="血清Alb" step="0.1" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="例: 3.5">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">血清BUN (mg/dL)</label>
+                                <input type="number" name="血清BUN" step="0.1" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="例: 25.0">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">血清eGFR</label>
+                                <input type="number" name="血清eGFR" step="0.1" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="例: 45.0">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">血清CRP (mg/dL)</label>
+                                <input type="number" name="血清CRP" step="0.01" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="例: 0.5">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">血清Hb (g/dL)</label>
+                                <input type="number" name="血清Hb" step="0.1" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="例: 12.5">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">血清Na (mEq/L)</label>
+                                <input type="number" name="血清Na" step="0.1" min="100" max="160" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="例: 140.0">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">NT-proBNP (pg/mL)</label>
+                                <input type="number" name="NT-proBNP" step="1" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="例: 5000">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 投薬 -->
+                    <div>
+                        <h3 class="text-md font-medium text-gray-700 mb-3">投薬</h3>
+                        <div class="input-group">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">βブロッカー</label>
+                                <select name="βブロッカー" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option value="">未選択</option>
+                                    <option value="0">なし</option>
+                                    <option value="1">あり</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">ACE阻害薬</label>
+                                <select name="ACE阻害薬" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option value="">未選択</option>
+                                    <option value="0">なし</option>
+                                    <option value="1">あり</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">SGLT2阻害薬</label>
+                                <select name="SGLT2阻害薬" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option value="">未選択</option>
+                                    <option value="0">なし</option>
+                                    <option value="1">あり</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">ARB</label>
+                                <select name="ARB" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option value="">未選択</option>
+                                    <option value="0">なし</option>
+                                    <option value="1">あり</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">MRA</label>
+                                <select name="MRA" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option value="">未選択</option>
+                                    <option value="0">なし</option>
+                                    <option value="1">あり</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">ARNI</label>
+                                <select name="ARNI" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option value="">未選択</option>
+                                    <option value="0">なし</option>
+                                    <option value="1">あり</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">デバイス挿入</label>
+                                <select name="デバイス挿入" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option value="">未選択</option>
+                                    <option value="0">なし</option>
+                                    <option value="1">あり</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 入院時ADL -->
+                    <div>
+                        <h3 class="text-md font-medium text-gray-700 mb-3">入院時ADL</h3>
+                        <div class="input-group">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">BI入院 (0-100)</label>
+                                <input type="number" name="BI入院" min="0" max="100" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="例: 85">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">FIM入院 (18-126)</label>
+                                <input type="number" name="FIM入院" min="18" max="126" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="例: 100">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">バランス入院</label>
+                                <input type="number" name="バランス入院" step="0.1" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="例: 12.0">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">起立入院</label>
+                                <input type="number" name="起立入院" step="0.1" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="例: 3.0">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">歩行入院</label>
+                                <input type="number" name="歩行入院" step="0.1" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="例: 5.0">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">合計入院</label>
+                                <input type="number" name="合計入院" step="0.1" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="例: 20.0">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 身体機能・認知機能 -->
+                    <div>
+                        <h3 class="text-md font-medium text-gray-700 mb-3">身体機能・認知機能</h3>
+                        <div class="input-group">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">4m歩行 (秒)</label>
+                                <input type="number" name="4m歩行" step="0.1" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="例: 5.5">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">通常歩行速度 (m/s)</label>
+                                <input type="number" name="通常歩行速度" step="0.01" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="例: 0.8">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">握力 (kg)</label>
+                                <input type="number" name="握力" step="0.1" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="例: 25.0">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">認知機能低下</label>
+                                <select name="認知機能低下" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option value="">未選択</option>
+                                    <option value="0">なし</option>
+                                    <option value="1">あり</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">基本チェックリスト (0-25)</label>
+                                <input type="number" name="基本チェックリスト" min="0" max="25" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="例: 5">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </details>
+
+            <!-- Submit Button -->
+            <div class="text-center">
+                <button type="submit" id="submitBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-12 rounded-lg text-lg transition-all transform hover:scale-105 shadow-lg">
+                    予測を実行
+                </button>
+            </div>
+        </form>
+
+        <!-- Result Modal -->
+        <div id="resultModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
+            <div class="bg-white rounded-2xl max-w-lg w-full p-8 relative">
+                <button onclick="closeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+
+                <div id="resultContent">
+                    <!-- 結果がここに表示される -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+            <div class="bg-white rounded-xl p-8 flex flex-col items-center gap-4">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                <p class="text-gray-600">予測中...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 本番環境ではRenderのAPIを使用、ローカルではlocalhost
+        const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? 'http://localhost:8000'
+            : 'https://heart-failure-api.onrender.com';
+
+        document.getElementById('predictionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(e.target);
+            const data = {};
+
+            for (const [key, value] of formData.entries()) {
+                // 空の値はスキップ（サーバー側でデフォルト値を使用）
+                if (value === '' || value === null || value === undefined) {
+                    continue;
+                }
+
+                // 診断名は文字列のまま
+                if (key === '診断名') {
+                    data[key] = value;
+                } else {
+                    // 数値に変換
+                    data[key] = parseFloat(value);
+                }
+            }
+
+            // ローディング表示
+            document.getElementById('loadingOverlay').classList.remove('hidden');
+            document.getElementById('loadingOverlay').classList.add('flex');
+
+            try {
+                const response = await fetch(`${API_URL}/predict`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data),
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || '予測に失敗しました');
+                }
+
+                const result = await response.json();
+                showResult(result);
+
+            } catch (error) {
+                console.error('Error:', error);
+                showError(error.message);
+            } finally {
+                document.getElementById('loadingOverlay').classList.add('hidden');
+                document.getElementById('loadingOverlay').classList.remove('flex');
+            }
+        });
+
+        function showResult(result) {
+            const icons = {
+                '自宅': '🏠',
+                '転院': '🏥',
+                '施設': '🏛️'
+            };
+
+            const colors = {
+                '自宅': 'from-green-500 to-green-600',
+                '転院': 'from-yellow-500 to-yellow-600',
+                '施設': 'from-blue-500 to-blue-600'
+            };
+
+            const html = `
+                <div class="text-center">
+                    <h3 class="text-xl font-bold text-gray-800 mb-6">予測結果</h3>
+
+                    <div class="bg-gradient-to-r ${colors[result.prediction]} text-white rounded-xl p-6 mb-6">
+                        <div class="text-5xl mb-2">${icons[result.prediction]}</div>
+                        <div class="text-3xl font-bold">${result.prediction}</div>
+                    </div>
+
+                    <div class="bg-gray-50 rounded-xl p-4 mb-6">
+                        <h4 class="text-sm font-medium text-gray-500 mb-3">各転帰先の確率</h4>
+                        <div class="space-y-3">
+                            ${Object.entries(result.probabilities).map(([label, prob]) => `
+                                <div class="flex items-center gap-3">
+                                    <span class="w-12 text-sm text-gray-600">${label}</span>
+                                    <div class="flex-1 bg-gray-200 rounded-full h-4 overflow-hidden">
+                                        <div class="h-full bg-blue-500 rounded-full transition-all" style="width: ${prob * 100}%"></div>
+                                    </div>
+                                    <span class="w-16 text-sm font-medium text-gray-700 text-right">${(prob * 100).toFixed(1)}%</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <p class="text-xs text-gray-400">
+                        モデル精度: ${(result.model_accuracy * 100).toFixed(1)}%
+                    </p>
+                </div>
+            `;
+
+            document.getElementById('resultContent').innerHTML = html;
+            document.getElementById('resultModal').classList.remove('hidden');
+            document.getElementById('resultModal').classList.add('flex');
+        }
+
+        function showError(message) {
+            const html = `
+                <div class="text-center">
+                    <div class="text-5xl mb-4">⚠️</div>
+                    <h3 class="text-xl font-bold text-red-600 mb-4">エラー</h3>
+                    <p class="text-gray-600">${message}</p>
+                </div>
+            `;
+
+            document.getElementById('resultContent').innerHTML = html;
+            document.getElementById('resultModal').classList.remove('hidden');
+            document.getElementById('resultModal').classList.add('flex');
+        }
+
+        function closeModal() {
+            document.getElementById('resultModal').classList.add('hidden');
+            document.getElementById('resultModal').classList.remove('flex');
+        }
+
+        // モーダル外クリックで閉じる
+        document.getElementById('resultModal').addEventListener('click', (e) => {
+            if (e.target.id === 'resultModal') {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>
